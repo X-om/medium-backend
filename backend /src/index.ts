@@ -5,6 +5,8 @@ import { z } from "zod";
 import { createMiddleware } from "hono/factory";
 import { MESSAGE_MATCHER_IS_ALREADY_BUILT } from "hono/router";
 import { jwt, sign, verify } from "hono/jwt";
+import { stream } from "hono/streaming";
+import { JWTPayload } from "hono/utils/jwt/types";
 
 type AppEnv = {
   Bindings: {
@@ -15,6 +17,7 @@ type AppEnv = {
     userId: string;
     signinBody: signinInputType;
     token: string;
+    blogBody : blogPostType;
   };
 };
 
@@ -191,7 +194,54 @@ app.post(
   }
 );
 
-app.post("/api/v1/blog", (c) => {});
+
+const blogPostSchema = z.object({
+  title : z.string().min(1,{message : "title is missing"}),
+  content : z.string().min(1,{message : "content is missing"}),
+  published : z.boolean().optional()
+});
+
+type blogPostType = z.infer<typeof blogPostSchema>;
+
+const blogInputValidation : MiddlewareHandler = createMiddleware(
+  async (c,next) => {
+    const response = blogPostSchema.safeParse(await c.req.json());
+    if(!response.success){
+      c.status(402);
+      return c.json({
+        message : response.error.errors.map((err) => {
+          err.message
+        }),
+      });
+    }
+
+    c.set("blogBody",response.data);
+    await next();
+  }
+);
+
+const createBlogPost : MiddlewareHandler = createMiddleware(
+  async (c, next) => {
+    const prisma = new PrismaClient({
+      datasourceUrl : c.env.DATABASE_URL
+    }).$extends(withAccelerate());
+
+    const blogData : blogPostType =  c.get("blogBody");
+    const token : string | undefined = c.req.header("authorization")?.split(' ')[1];
+    if(!token){
+      return c.json({
+        message : "token verification failed"
+      })
+    }
+    const decode : JWTPayload= await verify(token,c.env.JWT_SECRET);
+    const userId = decode.id;
+  }
+)
+
+app.post("/api/v1/blog", blogInputValidation, (c) => {
+    const blogData : blogPostType = c.get("blogBody");
+
+});
 app.put("/api/v1/blog", (c) => {});
 app.get("/api/v1/blog/:id", (c) => {});
 app.get("/api/v1/blog/bulk", (c) => {});
