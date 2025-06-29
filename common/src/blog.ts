@@ -26,7 +26,5 @@ export type blogPostTypeReturn = {
     }
 }
 
-
-
 export type blogPostType = z.infer<typeof blogPostSchema>;
 export type updateBlogType = z.infer<typeof updateBlogSchema>;
