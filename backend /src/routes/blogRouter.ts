@@ -23,6 +23,7 @@ export const blogRouter = new Hono<{
     updatedBlog: updateBlogType;
     singleBlogPost: blogPostType;
     blogBulk : blogPostTypeReturn
+    totalBlogs : number
   };
 }>();
 
@@ -66,8 +67,10 @@ blogRouter.get("/", authMiddleware, getBlogById, async (c: Context) => {
 
 blogRouter.get("/bulk", authMiddleware, getBlogsBulk, async (c: Context) => {
     const blogs : blogPostTypeReturn = c.get("blogBulk");
+    const totalBlogs : number = c.get("totalBlogs");
     return c.json({
       success : true,
-      payload : blogs
+      payload : blogs,
+      total : totalBlogs
     });
 });

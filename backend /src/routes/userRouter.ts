@@ -2,9 +2,10 @@ import { Hono } from "hono";
 import { signinInputType, signupInputType } from "@om-argade/common";
 import {
   createUserMiddleware,
+  passwordCheck,
   signinInputValidation,
   signupInputValidation,
-  userSignIn,
+  userExistCheck,
 } from "../middleware/user";
 
 import { assignToken } from "../middleware/auth/authMiddleware";
@@ -17,13 +18,16 @@ export const userRouter = new Hono<{
   Variables: {
     userId: string;
     token: string;
+    hashedPassword : {
+      id : string,
+      password : string
+    },
     signinBody: signinInputType;
     signupBody: signupInputType;
   };
 }>();
 
-// return JWT for fast login
-// hashed password
+
 userRouter.post(
   "/signup",
   signupInputValidation,
@@ -42,7 +46,8 @@ userRouter.post(
 userRouter.post(
   "/signin",
   signinInputValidation,
-  userSignIn,
+  userExistCheck,
+  passwordCheck,
   assignToken,
   async (c) => {
     const token = c.get("token");

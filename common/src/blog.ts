@@ -5,6 +5,7 @@ export const blogPostSchema = z.object({
   title: z.string().min(1, { message: "title is missing" }),
   content: z.string().min(1, { message: "content is missing" }),
   published: z.boolean().optional(),
+  
 });
 
 export const updateBlogSchema = z.object({

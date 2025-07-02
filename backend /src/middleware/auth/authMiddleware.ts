@@ -1,6 +1,8 @@
+import { compare, genSalt, hash } from "bcryptjs";
 import { Context, MiddlewareHandler } from "hono";
 import { createMiddleware } from "hono/factory";
 import { sign, verify } from "hono/jwt";
+import { logger } from "../../utils/logger";
 
 export const authMiddleware: MiddlewareHandler = createMiddleware(
   async (c: Context, next) => {
@@ -30,7 +32,7 @@ export const authMiddleware: MiddlewareHandler = createMiddleware(
 
 export const assignToken: MiddlewareHandler = createMiddleware(
   async (c: Context, next) => {
-    const userId: string = await c.get("userId");
+    const userId: string = c.get("userId");
     if (!userId) {
       c.status(400);
       return c.json({
@@ -51,3 +53,29 @@ export const assignToken: MiddlewareHandler = createMiddleware(
     }
   }
 );
+
+export async function hashPassword(password : string) : Promise<string>{
+  const saltRounds = 10;
+  try {
+    const salt = await genSalt(saltRounds);
+    const hashedPassword =  await hash(password, salt);
+    logger.info("password hashed successfully");
+    return hashedPassword;
+  } catch (err: any) {
+    logger.error("Error while hashing password:", err);
+    throw new Error("Password hashing failed");
+  }
+}
+
+
+export async function verifyPassword(password : string, hashedPassword : string) : Promise<boolean>{ 
+  try {
+    const result = await compare(password , hashedPassword);
+    logger.info("password comparison completed");
+    return result;
+  } catch(error : any){
+    logger.error(`error while comparing password ${error}`);
+    throw new Error("Password comparison failed");
+  }
+  
+}

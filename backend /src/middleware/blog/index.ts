@@ -9,17 +9,20 @@ import {
   blogPostType,
   blogPostTypeReturn,
 } from "@om-argade/common";
+import { logger } from "../../utils/logger";
+
 
 export const blogInputValidation: MiddlewareHandler = createMiddleware(
   async (c: Context, next) => {
     const response = blogPostSchema.safeParse(await c.req.json());
+    
     if (!response.success) {
       c.status(403);
       return c.json({
         message: response.error.errors.map((err) => err.message),
       });
     }
-
+    
     c.set("blogBody", response.data);
     await next();
   }
@@ -185,16 +188,20 @@ export const getBlogsBulk: MiddlewareHandler = createMiddleware(
       }
 
       if (blogs.length == 0) {
-        c.status(204);
+        c.status(200);
         return c.json({
           success: false,
           message: "No blogs found !",
+          blogs : [],
+          total : 0
         });
       }
 
       c.set("blogBulk", blogs);
+      c.set("totalBlogs", blogs.length);
       await next();
     } catch (error: any) {
+      logger.error("getBlogsBulk error", error);
       c.status(500);
       return c.json({
         success: false,

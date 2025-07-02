@@ -1,8 +1,6 @@
 import { Hono } from "hono";
-import { userRouter } from "./Routes/userRouter";
-import { blogRouter } from "./Routes/blogRouter";
-
-
+import { userRouter } from "./routes/userRouter";
+import { blogRouter } from "./routes/blogRouter";
 
 const app = new Hono();
 
@@ -14,8 +12,7 @@ app.get("/", (c) =>
     status: "OK",
   })
 );
-app.route("/api/v1/user",userRouter);
-app.route("/api/v1/blog",blogRouter);
-
+app.route("/api/v1/user", userRouter);
+app.route("/api/v1/blog", blogRouter);
 
 export default app;
