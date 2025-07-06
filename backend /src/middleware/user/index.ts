@@ -4,7 +4,6 @@ import { getPrisma } from "../../utils/db";
 import { signinInputSchema, signupInputSchema } from "@om-argade/common";
 import { signinInputType, signupInputType } from "@om-argade/common";
 import { hashPassword, verifyPassword } from "../auth/authMiddleware";
-import { success } from "zod/v4";
 import { logger } from "../../utils/logger";
 
 export const signupInputValidation: MiddlewareHandler = createMiddleware(
